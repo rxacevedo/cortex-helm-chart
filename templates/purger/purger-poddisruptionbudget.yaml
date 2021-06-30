@@ -1,0 +1,13 @@
+{{- if and (gt (int .Values.purger.replicas) 1) (.Values.purger.podDisruptionBudget) }}
+apiVersion: policy/v1beta1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "cortex.purgerFullname" . }}
+  labels:
+    {{- include "cortex.purgerLabels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "cortex.purgerSelectorLabels" . | nindent 6 }}
+  {{- toYaml .Values.purger.podDisruptionBudget | nindent 2 }}
+{{- end }}

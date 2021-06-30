@@ -1,0 +1,13 @@
+{{- if .Values.purger.enabled }}
+{{- range $dir, $files := .Values.purger.directories }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "cortex.purgerFullname" $ }}-{{ include "cortex.purgerRulesDirName" $dir }}
+  labels:
+    {{- include "cortex.purgerLabels" $ | nindent 4 }}
+data:
+  {{- toYaml $files | nindent 2}}
+{{- end }}
+{{- end }}

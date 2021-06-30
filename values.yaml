@@ -806,6 +806,143 @@ ruler:
     # running the sidecar will also run as root
     # provider configuration that lets cortex manage the rules
 
+### purger
+purger:
+  enabled: true
+  replicas: 1
+
+  service:
+    annotations: {}
+    labels: {}
+
+  serviceMonitor:
+    enabled: false
+    additionalLabels: {}
+    relabelings: []
+    metricRelabelings: []
+
+  resources: {}
+  #  limits:
+  #    cpu: 200m
+  #    memory: 256Mi
+  #  requests:
+  #    cpu: 10m
+  #    memory: 32Mi
+
+  ## Additional Cortex container arguments, e.g. log level (debug, info, warn, error)
+  extraArgs:
+    {}
+    # log.level: debug
+
+  ## Pod Labels
+  podLabels: {}
+
+  ## Pod Annotations
+  podAnnotations:
+    prometheus.io/scrape: 'true'
+    prometheus.io/port: 'http-metrics'
+
+  nodeSelector: {}
+  affinity: {}
+  annotations: {}
+  persistence:
+    subPath:
+
+  startupProbe:
+    httpGet:
+      path: /ready
+      port: http-metrics
+    failureThreshold: 10
+  livenessProbe:
+    httpGet:
+      path: /ready
+      port: http-metrics
+  readinessProbe:
+    httpGet:
+      path: /ready
+      port: http-metrics
+
+  securityContext: {}
+
+  containerSecurityContext:
+    enabled: true
+    readOnlyRootFilesystem: true
+
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 0
+      maxUnavailable: 1
+
+  terminationGracePeriodSeconds: 180
+
+  tolerations: []
+  podDisruptionBudget:
+    maxUnavailable: 1
+  initContainers: []
+  extraContainers: []
+  extraVolumes: []
+  extraVolumeMounts: []
+  extraPorts: []
+  env: []
+  # allow configuring rules via configmap in case you don't want to use the configs db
+  directories: {}
+    # tenant_foo:
+    #   rules1.txt: |
+    #     groups:
+    #       - name: should_fire
+    #         rules:
+    #           - alert: HighPercentageError
+    #             expr: |
+    #               sum(rate({app="foo", env="production"} |= "error" [5m])) by (job)
+    #                 /
+    #               sum(rate({app="foo", env="production"}[5m])) by (job)
+    #                 > 0.05
+    #             for: 10m
+    #             labels:
+    #               severity: warning
+    #             annotations:
+    #               summary: High error rate
+
+  ## Sidecars that collect the configmaps with specified label and stores the included files them into the respective folders
+  sidecar:
+    image:
+      repository: quay.io/kiwigrid/k8s-sidecar
+      tag: 1.10.7
+      sha: ""
+    imagePullPolicy: IfNotPresent
+    resources: {}
+    #   limits:
+    #     cpu: 100m
+    #     memory: 100Mi
+    #   requests:
+    #     cpu: 50m
+    #     memory: 50Mi
+    # skipTlsVerify Set to true to skip tls verification for kube api calls
+    # skipTlsVerify: true
+    enableUniqueFilenames: false
+    enabled: false
+    # label that the configmaps with rules are marked with
+    label: cortex_rules
+    watchMethod: null
+    # value of label that the configmaps with rules are set to
+    labelValue: null
+    # folder in the pod that should hold the collected rules (unless `defaultFolderName` is set)
+    folder: /tmp/rules
+    # The default folder name, it will create a subfolder under the `folder` and put rules in there instead
+    defaultFolderName: null
+    # If specified, the sidecar will search for rules config-maps inside this namespace.
+    # Otherwise the namespace in which the sidecar is running will be used.
+    # It's also possible to specify ALL to search in all namespaces
+    searchNamespace: null
+    # If specified, the sidecar will look for annotation with this name to create folder and put graph here.
+    # You can use this parameter together with `provider.foldersFromFilesStructure`to annotate configmaps and create folder structure.
+    folderAnnotation: null
+    securityContext:
+      runAsUser: 0
+    # running the sidecar will also run as root
+    # provider configuration that lets cortex manage the rules
+###
 
 querier:
   replicas: 2
